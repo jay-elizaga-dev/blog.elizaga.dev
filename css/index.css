@@ -1,9 +1,43 @@
-/* Index page (home) styles - featured post + blog listing */
+/* Index page (home) — welcome landing page */
+
+/* --- Welcome Section --- */
+
+.welcome-section {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+}
+
+.welcome-section h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.welcome-section p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 8px;
+}
+
+/* --- Section Headings --- */
+
+.section-heading {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
 /* --- Featured Post Section --- */
 
-#featured-section {
-    margin-bottom: 60px;
+.featured-section {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
 }
 
 .featured-post {
@@ -47,19 +81,19 @@
     color: var(--accent);
 }
 
-.featured-post h2 {
-    font-size: 1.8rem;
+.featured-post h3 {
+    font-size: 1.6rem;
     font-weight: 700;
     margin-bottom: 12px;
     line-height: 1.3;
 }
 
-.featured-post h2 a {
+.featured-post h3 a {
     color: var(--text);
     text-decoration: none;
 }
 
-.featured-post h2 a:hover {
+.featured-post h3 a:hover {
     text-decoration: underline;
 }
 
@@ -91,118 +125,94 @@
     text-decoration: underline;
 }
 
-/* --- All Posts Heading --- */
+/* --- Link Grid --- */
 
-.all-posts-heading {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 24px;
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 2px solid var(--border);
+.links-section {
+    margin-bottom: 48px;
 }
 
-/* --- Blog Listing (reuse from blog.css) --- */
-
-.date-group {
-    margin-bottom: 40px;
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
 }
 
-.date-group h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 8px;
-    margin-bottom: 16px;
+.link-card {
+    display: block;
+    padding: 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-decoration: none;
+    transition: border-color 0.15s;
 }
 
-.blog-entry {
-    margin-bottom: 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-}
-
-.blog-entry:last-child {
-    border-bottom: none;
-}
-
-.blog-entry h3 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 6px;
-    line-height: 1.3;
-}
-
-.blog-entry h3 a {
-    color: var(--text);
+.link-card:hover {
+    border-color: var(--link);
     text-decoration: none;
 }
 
-.blog-entry h3 a:hover {
-    text-decoration: underline;
+.link-card:visited {
+    color: inherit;
 }
 
-.blog-entry-meta {
+.link-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.link-card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* --- Footer --- */
+
+.footer-links {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 0.85rem;
+}
+
+.footer-links a {
     color: var(--text-muted);
-    margin-bottom: 8px;
+    text-decoration: none;
 }
 
-.blog-entry-meta time {
-    color: var(--text-secondary);
+.footer-links a:hover {
+    color: var(--link);
 }
 
-.blog-entry-excerpt {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 8px;
-}
-
-.blog-entry-tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.blog-entry-category {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--accent);
-}
-
-.word-count {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+.credits {
     font-size: 0.8rem;
     color: var(--text-muted);
+    margin-top: 4px;
 }
 
 /* --- Responsive --- */
 
 @media (max-width: 600px) {
+    .welcome-section h2 {
+        font-size: 1.4rem;
+    }
+
     .featured-content {
         padding: 20px;
     }
 
-    .featured-post h2 {
-        font-size: 1.4rem;
+    .featured-post h3 {
+        font-size: 1.3rem;
     }
 
-    .featured-excerpt {
-        font-size: 0.95rem;
-    }
-
-    .all-posts-heading {
-        font-size: 1.2rem;
-        margin-top: 32px;
-    }
-
-    .blog-entry h3 {
-        font-size: 1.1rem;
+    .link-grid {
+        grid-template-columns: 1fr;
     }
 }

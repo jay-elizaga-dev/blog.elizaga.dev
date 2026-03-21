@@ -1,0 +1,80 @@
+/* Shared styles for static pages (about, privacy, donate) */
+
+.page-content {
+    margin-bottom: 40px;
+}
+
+.page-content h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+}
+
+.page-content h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 32px;
+    margin-bottom: 12px;
+}
+
+.page-content p {
+    margin-bottom: 16px;
+    line-height: 1.7;
+}
+
+.page-content ul {
+    margin-bottom: 16px;
+    padding-left: 24px;
+}
+
+.page-content li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.page-content blockquote {
+    border-left: 3px solid var(--blockquote-border);
+    padding-left: 20px;
+    margin: 24px 0;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.page-meta {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+}
+
+/* --- Button --- */
+
+.btn {
+    display: inline-block;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--link);
+    text-decoration: none;
+    padding: 10px 24px;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+.btn:hover {
+    text-decoration: none;
+    opacity: 0.9;
+}
+
+.btn:visited {
+    color: var(--bg);
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 600px) {
+    .page-content h2 {
+        font-size: 1.4rem;
+    }
+}

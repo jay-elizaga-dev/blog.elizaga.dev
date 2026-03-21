@@ -3,7 +3,7 @@ const SANITY_PROJECT_ID = 'w4gptd1g';
 const SANITY_DATASET = 'production';
 const SANITY_API_VERSION = '2024-01-01';
 
-const SANITY_TOKEN = 'skLdN4G0qDEDFVPxN70skvJSISWRNwZNZRpPg0mpkWkHoVB2d8eQkAhOWfWIPggrifCxiOXVxR6Qc7O20X4HyTPwjSLwt9EP1BS78opmlnYyGkNoLGvnzAfqILWhi9zKps2FzkKIfUd6zuu9XYgh3i2hBpN95tYzcJuvlvISTnGkZUWdRDVl';
+// Token removed — published content is publicly queryable
 
 
 /**
@@ -79,11 +79,7 @@ async function fetchPost(postId) {
 
         const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(query)}`;
 
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${SANITY_TOKEN}`
-            }
-        });
+        const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error(`API Error: ${response.status}`);
