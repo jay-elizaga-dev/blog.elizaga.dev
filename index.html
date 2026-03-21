@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog</title>
     <link rel="stylesheet" href="/css/shared.css">
-    <link rel="stylesheet" href="/css/blog.css">
+    <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
     <header>
@@ -20,6 +20,10 @@
     </header>
 
     <div class="container">
+        <div id="featured-section">
+            <div class="loading">Loading posts...</div>
+        </div>
+
         <div id="blog-container">
             <div class="loading">Loading posts...</div>
         </div>
@@ -45,6 +49,6 @@
                 document.documentElement.setAttribute('data-theme', 'dark');
         })();
     </script>
-    <script src="/js/blog.js"></script>
+    <script src="/js/index.js"></script>
 </body>
 </html>

@@ -31,6 +31,31 @@ function getPostId() {
     return params.get('id');
 }
 
+/**
+ * Extract YouTube video ID from URL
+ */
+function extractYouTubeId(url) {
+    if (!url) return null;
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+        /youtube\.com\/embed\/([^?&]+)/,
+    ];
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+    }
+    return null;
+}
+
+/**
+ * Extract Vimeo video ID from URL
+ */
+function extractVimeoId(url) {
+    if (!url) return null;
+    const match = url.match(/(?:vimeo\.com\/)([0-9]+)/);
+    return match ? match[1] : null;
+}
+
 
 /**
  * Fetch a single post by ID from Sanity
@@ -48,7 +73,8 @@ async function fetchPost(postId) {
             publishedAt,
             category,
             tags,
-            status
+            status,
+            customTemplate
         }`;
 
         const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(query)}`;
@@ -104,6 +130,38 @@ function renderPostContent(container, contentHtml, tagsHtml) {
 }
 
 /**
+ * Apply custom template if provided
+ */
+function applyCustomTemplate(post, contentHtml, tagsHtml) {
+    if (!post.customTemplate || !post.customTemplate.enabled) {
+        return null; // Use default rendering
+    }
+
+    // Inject custom CSS
+    const styleTag = document.createElement('style');
+    styleTag.textContent = post.customTemplate.css;
+    document.head.appendChild(styleTag);
+
+    // Prepare template variables
+    const formattedDate = formatDate(post.publishedAt);
+    const authorName = post.author?.name || 'Anonymous';
+    const tagsContent = tagsHtml || '';
+
+    // Replace placeholders in template HTML
+    let templateHtml = post.customTemplate.html
+        .replace(/\{\{title\}\}/g, sanitizeHtml(post.title))
+        .replace(/\{\{excerpt\}\}/g, sanitizeHtml(post.excerpt || ''))
+        .replace(/\{\{featuredImage\}\}/g, post.image || '')
+        .replace(/\{\{content\}\}/g, contentHtml)
+        .replace(/\{\{author\}\}/g, sanitizeHtml(authorName))
+        .replace(/\{\{date\}\}/g, formattedDate)
+        .replace(/\{\{category\}\}/g, sanitizeHtml(post.category || ''))
+        .replace(/\{\{tags\}\}/g, tagsContent);
+
+    return templateHtml;
+}
+
+/**
  * Load and display the post
  */
 async function loadPost() {
@@ -134,8 +192,8 @@ async function loadPost() {
             // Content is a markdown string, parse it
             contentHtml = marked.parse(post.content);
           } else if (Array.isArray(post.content)) {
-            // Content is Sanity portable text (array of blocks)
-            const textContent = post.content.map(block => {
+            // Content is Sanity portable text (array of blocks, images, and videos)
+            contentHtml = post.content.map(block => {
               if (block._type === 'block') {
                 // Extract text from block children
                 const blockText = block.children.map(child => child.text).join('');
@@ -145,10 +203,36 @@ async function loadPost() {
                   return '#'.repeat(parseInt(level)) + ' ' + blockText;
                 }
                 return blockText;
+              } else if (block._type === 'image') {
+                // Handle inline images from Sanity
+                const imageUrl = block.asset?.url || '';
+                const alt = sanitizeHtml(block.alt || 'Image');
+                const caption = block.caption ? `<figcaption>${sanitizeHtml(block.caption)}</figcaption>` : '';
+                return `<figure style="margin: 2rem 0;"><img src="${imageUrl}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 8px;">${caption}</figure>`;
+              } else if (block._type === 'video') {
+                // Handle inline videos from Sanity
+                let videoEmbed = '';
+                const caption = block.caption ? `<p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">${sanitizeHtml(block.caption)}</p>` : '';
+
+                if (block.source === 'youtube') {
+                  const videoId = extractYouTubeId(block.url);
+                  if (videoId) {
+                    videoEmbed = `<iframe width="100%" height="500" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                  }
+                } else if (block.source === 'vimeo') {
+                  const videoId = extractVimeoId(block.url);
+                  if (videoId) {
+                    videoEmbed = `<iframe src="https://player.vimeo.com/video/${videoId}?h=&color=ffffff&portrait=0" width="100%" height="500" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+                  }
+                } else if (block.source === 'direct') {
+                  videoEmbed = `<video width="100%" controls style="border-radius: 8px;"><source src="${block.url}" type="video/mp4">Your browser does not support the video tag.</video>`;
+                }
+
+                return videoEmbed ? `<div style="margin: 2rem 0;">${videoEmbed}${caption}</div>` : '';
               }
               return '';
-            }).join('\n\n');
-            contentHtml = marked.parse(textContent);
+            }).join('\n');
+            contentHtml = marked.parse(contentHtml);
           }
         }
 
@@ -156,7 +240,18 @@ async function loadPost() {
             ? post.tags.map(tag => `<span class="tag">${sanitizeHtml(tag)}</span>`).join('')
             : '';
 
-        renderPostContent(container, contentHtml, tagsHtml);
+        // Check for custom template
+        const customHtml = applyCustomTemplate(post, contentHtml, tagsHtml);
+
+        if (customHtml) {
+            // Use custom template
+            container.innerHTML = customHtml;
+        } else {
+            // Use default template
+            const postHtml = renderPost(post);
+            container.innerHTML = postHtml;
+            renderPostContent(container, contentHtml, tagsHtml);
+        }
     } catch (error) {
         container.innerHTML = `
             <div class="error">
