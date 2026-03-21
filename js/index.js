@@ -3,6 +3,8 @@ const SANITY_PROJECT_ID = 'w4gptd1g';
 const SANITY_DATASET = 'production';
 const SANITY_API_VERSION = '2024-01-01';
 
+const PUBLISHABLE_SANITY_TOKEN_VIEW_ONLY = 'skLdN4G0qDEDFVPxN70skvJSISWRNwZNZRpPg0mpkWkHoVB2d8eQkAhOWfWIPggrifCxiOXVxR6Qc7O20X4HyTPwjSLwt9EP1BS78opmlnYyGkNoLGvnzAfqILWhi9zKps2FzkKIfUd6zuu9XYgh3i2hBpN95tYzcJuvlvISTnGkZUWdRDVl';
+
 // Default featured post ID
 const FEATURED_POST_ID = 'qhSwcy3H9AuRqc0GLKS5MA';
 
@@ -42,7 +44,11 @@ async function fetchPostById(id) {
 
     const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(query)}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${PUBLISHABLE_SANITY_TOKEN_VIEW_ONLY}`
+        }
+    });
 
     if (!response.ok) {
         throw new Error(`API Error: ${response.status}`);
