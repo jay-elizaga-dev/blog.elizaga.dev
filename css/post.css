@@ -185,6 +185,63 @@
     font-weight: 600;
 }
 
+/* --- Series Context Banner --- */
+
+.series-context-banner {
+    margin: 24px 0;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-left: 4px solid var(--accent);
+    border-radius: 4px;
+}
+
+.series-context-info {
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.series-context-info strong {
+    font-weight: 600;
+}
+
+.series-context-info a {
+    color: var(--link);
+    text-decoration: none;
+}
+
+.series-context-info a:hover {
+    text-decoration: underline;
+}
+
+.series-context-info a:visited {
+    color: var(--link-visited);
+}
+
+.series-context-nav {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.series-nav-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--link);
+    text-decoration: none;
+}
+
+.series-nav-link:hover {
+    text-decoration: underline;
+}
+
+.series-nav-link:visited {
+    color: var(--link-visited);
+}
+
 /* --- Post Tags --- */
 
 .post-tags {

@@ -99,6 +99,40 @@ async function fetchPost(postId) {
 }
 
 /**
+ * Fetch series context for a post
+ */
+async function fetchSeriesContext(postId) {
+    try {
+        const query = `*[_type == "series" && references($postId)] | order(startDate desc) {
+            title,
+            slug,
+            "position": array::indexOf(posts[]._ref, $postId),
+            "total": count(posts),
+            "prevPost": posts[array::indexOf(posts[]._ref, $postId) - 1]->{_id, title, slug},
+            "nextPost": posts[array::indexOf(posts[]._ref, $postId) + 1]->{_id, title, slug}
+        }`;
+
+        const url = `https://${SANITY_PROJECT_ID}.api.sanity.io/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}?query=${encodeURIComponent(query)}&$postId="${postId}"`;
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${PUBLISHABLE_SANITY_TOKEN_VIEW_ONLY}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.result || [];
+    } catch (error) {
+        console.error('Error fetching series context:', error);
+        return [];
+    }
+}
+
+/**
  * Render post header and metadata
  */
 function renderPost(post) {
@@ -120,12 +154,42 @@ function renderPost(post) {
 }
 
 /**
+ * Render series context banner
+ */
+function renderSeriesBanner(series) {
+    if (!series || series.length === 0) return '';
+
+    // For now, just show the first series (could be extended for multiple series)
+    const s = series[0];
+    const position = s.position !== undefined ? s.position + 1 : 'N';
+    const total = s.total || '?';
+
+    let navHtml = '';
+    if (s.prevPost) {
+        navHtml += `<a href="/post.html?id=${s.prevPost._id}" class="series-nav-link">← ${sanitizeHtml(s.prevPost.title)}</a>`;
+    }
+    if (s.nextPost) {
+        navHtml += `<a href="/post.html?id=${s.nextPost._id}" class="series-nav-link">${sanitizeHtml(s.nextPost.title)} →</a>`;
+    }
+
+    return `
+        <div class="series-context-banner">
+            <div class="series-context-info">
+                <strong>Part ${position} of ${total}</strong> in
+                <a href="/series-detail.html?slug=${encodeURIComponent(s.slug.current)}">${sanitizeHtml(s.title)}</a>
+            </div>
+            ${navHtml ? `<div class="series-context-nav">${navHtml}</div>` : ''}
+        </div>
+    `;
+}
+
+/**
  * Inject markdown content into post container
  */
-function renderPostContent(container, contentHtml, tagsHtml) {
+function renderPostContent(container, contentHtml, tagsHtml, seriesHtml) {
     const contentDiv = container.querySelector('#post-content-inner');
     if (contentDiv) {
-        contentDiv.innerHTML = contentHtml + (tagsHtml ? `<div class="post-tags">${tagsHtml}</div>` : '');
+        contentDiv.innerHTML = (seriesHtml || '') + contentHtml + (tagsHtml ? `<div class="post-tags">${tagsHtml}</div>` : '');
     }
 }
 
@@ -240,6 +304,17 @@ async function loadPost() {
             ? post.tags.map(tag => `<span class="tag">${sanitizeHtml(tag)}</span>`).join('')
             : '';
 
+        // Fetch series context (async, won't block rendering)
+        let seriesHtml = '';
+        try {
+            const seriesContext = await fetchSeriesContext(post._id);
+            if (seriesContext.length > 0) {
+                seriesHtml = renderSeriesBanner(seriesContext);
+            }
+        } catch (e) {
+            // Series context is optional, continue if it fails
+        }
+
         // Check for custom template
         const customHtml = applyCustomTemplate(post, contentHtml, tagsHtml);
 
@@ -250,7 +325,7 @@ async function loadPost() {
             // Use default template
             const postHtml = renderPost(post);
             container.innerHTML = postHtml;
-            renderPostContent(container, contentHtml, tagsHtml);
+            renderPostContent(container, contentHtml, tagsHtml, seriesHtml);
         }
     } catch (error) {
         container.innerHTML = `
