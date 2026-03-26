@@ -257,46 +257,64 @@ async function loadPost() {
             contentHtml = marked.parse(post.content);
           } else if (Array.isArray(post.content)) {
             // Content is Sanity portable text (array of blocks, images, and videos)
-            contentHtml = post.content.map(block => {
+            // Render blocks directly to HTML without markdown round-trip
+            const htmlBlocks = [];
+            const markdownBlocks = [];
+
+            for (const block of post.content) {
               if (block._type === 'block') {
-                // Extract text from block children
+                // Collect text blocks to parse as markdown together
                 const blockText = block.children.map(child => child.text).join('');
-                // If the block has a style property (like 'h1', 'h2'), wrap in markdown heading syntax
                 if (block.style && block.style.startsWith('h')) {
                   const level = block.style.substring(1);
-                  return '#'.repeat(parseInt(level)) + ' ' + blockText;
+                  markdownBlocks.push('#'.repeat(parseInt(level)) + ' ' + blockText);
+                } else {
+                  markdownBlocks.push(blockText);
                 }
-                return blockText;
-              } else if (block._type === 'image') {
-                // Handle inline images from Sanity
-                const imageUrl = block.asset?.url || '';
-                const alt = sanitizeHtml(block.alt || 'Image');
-                const caption = block.caption ? `<figcaption>${sanitizeHtml(block.caption)}</figcaption>` : '';
-                return `<figure style="margin: 2rem 0;"><img src="${imageUrl}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 8px;">${caption}</figure>`;
-              } else if (block._type === 'video') {
-                // Handle inline videos from Sanity
-                let videoEmbed = '';
-                const caption = block.caption ? `<p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">${sanitizeHtml(block.caption)}</p>` : '';
-
-                if (block.source === 'youtube') {
-                  const videoId = extractYouTubeId(block.url);
-                  if (videoId) {
-                    videoEmbed = `<iframe width="100%" height="500" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                  }
-                } else if (block.source === 'vimeo') {
-                  const videoId = extractVimeoId(block.url);
-                  if (videoId) {
-                    videoEmbed = `<iframe src="https://player.vimeo.com/video/${videoId}?h=&color=ffffff&portrait=0" width="100%" height="500" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
-                  }
-                } else if (block.source === 'direct') {
-                  videoEmbed = `<video width="100%" controls style="border-radius: 8px;"><source src="${block.url}" type="video/mp4">Your browser does not support the video tag.</video>`;
+              } else {
+                // Flush accumulated markdown blocks
+                if (markdownBlocks.length > 0) {
+                  htmlBlocks.push(marked.parse(markdownBlocks.join('\n')));
+                  markdownBlocks.length = 0;
                 }
 
-                return videoEmbed ? `<div style="margin: 2rem 0;">${videoEmbed}${caption}</div>` : '';
+                // Handle non-text blocks directly
+                if (block._type === 'image') {
+                  const imageUrl = block.asset?.url || '';
+                  const alt = sanitizeHtml(block.alt || 'Image');
+                  const caption = block.caption ? `<figcaption>${sanitizeHtml(block.caption)}</figcaption>` : '';
+                  htmlBlocks.push(`<figure style="margin: 2rem 0;"><img src="${imageUrl}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 8px;">${caption}</figure>`);
+                } else if (block._type === 'video') {
+                  let videoEmbed = '';
+                  const caption = block.caption ? `<p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">${sanitizeHtml(block.caption)}</p>` : '';
+
+                  if (block.source === 'youtube') {
+                    const videoId = extractYouTubeId(block.url);
+                    if (videoId) {
+                      videoEmbed = `<iframe width="100%" height="500" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    }
+                  } else if (block.source === 'vimeo') {
+                    const videoId = extractVimeoId(block.url);
+                    if (videoId) {
+                      videoEmbed = `<iframe src="https://player.vimeo.com/video/${videoId}?h=&color=ffffff&portrait=0" width="100%" height="500" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+                    }
+                  } else if (block.source === 'direct') {
+                    videoEmbed = `<video width="100%" controls style="border-radius: 8px;"><source src="${block.url}" type="video/mp4">Your browser does not support the video tag.</video>`;
+                  }
+
+                  if (videoEmbed) {
+                    htmlBlocks.push(`<div style="margin: 2rem 0;">${videoEmbed}${caption}</div>`);
+                  }
+                }
               }
-              return '';
-            }).join('\n');
-            contentHtml = marked.parse(contentHtml);
+            }
+
+            // Flush any remaining markdown blocks
+            if (markdownBlocks.length > 0) {
+              htmlBlocks.push(marked.parse(markdownBlocks.join('\n')));
+            }
+
+            contentHtml = htmlBlocks.join('');
           }
         }
 
